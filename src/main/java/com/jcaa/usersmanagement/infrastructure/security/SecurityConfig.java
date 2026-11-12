@@ -17,6 +17,8 @@ public class SecurityConfig {
   private static final String AUTH_LOGIN_PATH = "/api/auth/login";
   private static final String USERS_PATH = "/api/users";
   private static final String USERS_DETAIL_PATH = "/api/users/**";
+  private static final String RESERVAS_HOTEL_PATH = "/api/reservas-hotel";
+  private static final String RESERVAS_HOTEL_DETAIL_PATH = "/api/reservas-hotel/**";
   private static final String[] OPEN_API_PATHS = {
     "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**"
   };
@@ -54,6 +56,14 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.PUT, USERS_DETAIL_PATH)
                     .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.DELETE, USERS_DETAIL_PATH)
+                    .hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, RESERVAS_HOTEL_PATH)
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, RESERVAS_HOTEL_PATH, RESERVAS_HOTEL_DETAIL_PATH)
+                    .hasAnyRole("ADMIN", "REVIEWER")
+                    .requestMatchers(HttpMethod.PUT, RESERVAS_HOTEL_DETAIL_PATH)
+                    .hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, RESERVAS_HOTEL_DETAIL_PATH)
                     .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated())

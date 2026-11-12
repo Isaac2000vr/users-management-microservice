@@ -31,3 +31,26 @@ VALUES (
     'ACTIVE'
 );
 
+CREATE TABLE IF NOT EXISTS reservas_hotel (
+    id                VARCHAR(36)  NOT NULL PRIMARY KEY,
+    fecha             VARCHAR(20)  NOT NULL,
+    hotel             VARCHAR(150) NOT NULL,
+    huesped           VARCHAR(100) NOT NULL,
+    fecha_inicio      VARCHAR(20)  NOT NULL,
+    fecha_fin         VARCHAR(20)  NOT NULL,
+    valor             DOUBLE       NOT NULL,
+    habitacion        VARCHAR(20)  NOT NULL,
+    num_acompanantes  INT          NOT NULL,
+    pais              VARCHAR(100) NOT NULL,
+    departamento      VARCHAR(100) NOT NULL,
+    ciudad            VARCHAR(100) NOT NULL,
+    hora_checkin      VARCHAR(10)  NOT NULL,
+    hora_checkout     VARCHAR(10)  NOT NULL,
+    empleado_atiende  VARCHAR(100) NOT NULL,
+    empleado_despide  VARCHAR(100) NOT NULL,
+    descripcion       TEXT         NULL,
+    status            ENUM('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED') NOT NULL DEFAULT 'PENDING',
+    created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
