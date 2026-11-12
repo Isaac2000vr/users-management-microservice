@@ -16,7 +16,7 @@ El plan gratuito de Render suspende el servicio tras unos minutos sin tráfico, 
 
 ## Verificación
 
-`GET /health` es publico y responde HTTP 200 con los metadatos generados desde
+`GET /health` es público y responde HTTP 200 con los metadatos generados desde
 `pom.xml` durante el build:
 
 ```json
@@ -32,13 +32,90 @@ Indica que la API responde; no comprueba MySQL ni el proveedor de correo.
 
 En Windows se puede utilizar `mvnw.cmd`.
 
-## Reservas de hotel
+## Endpoints
 
-El servicio también permite llevar el registro de las reservas de hotel. Cada reserva guarda la fecha en que se hizo, el hotel, el huésped, la fecha de inicio y de fin de la estadía, el valor pagado, la habitación, el número de acompañantes, el país, el departamento y la ciudad donde queda el hotel, la hora de check-in y de check-out, el empleado que atiende y el que despide al huésped, y una descripción opcional con observaciones adicionales.
+Salvo las rutas marcadas como públicas, todas las peticiones necesitan el token JWT
+en el header `Authorization: Bearer <token>`. El token se obtiene con el login y
+dura 15 minutos.
 
-Las reservas pasan por cuatro estados: `PENDING` cuando se crean, y luego pueden pasar a `CONFIRMED`, `CANCELLED` o `COMPLETED` al actualizarlas.
+### Salud y autenticación
 
-Los endpoints son los mismos de siempre, sobre `/api/reservas-hotel`:
+| Método | Ruta | Descripción | Permiso |
+|--------|------|-------------|---------|
+| GET | `/health` | Estado de la API | Público |
+| POST | `/api/auth/login` | Autentica y devuelve un JWT | Público |
+
+**Login**
+
+```json
+{
+  "email": "admin@example.com",
+  "password": "Admin1234!"
+}
+```
+
+Respuesta `200`:
+
+```json
+{
+  "accessToken": "<jwt>",
+  "tokenType": "Bearer",
+  "expiresIn": 900
+}
+```
+
+### Usuarios
+
+| Método | Ruta | Descripción | Permiso |
+|--------|------|-------------|---------|
+| POST | `/api/users` | Crea un usuario | Público |
+| GET | `/api/users` | Lista todos los usuarios | ADMIN o REVIEWER |
+| GET | `/api/users/{id}` | Consulta un usuario por su id | ADMIN o REVIEWER |
+| PUT | `/api/users/{id}` | Actualiza un usuario | ADMIN |
+| DELETE | `/api/users/{id}` | Elimina un usuario | ADMIN |
+
+**Crear usuario**
+
+```json
+{
+  "id": "usr-001",
+  "name": "Isaac Vasquez",
+  "email": "isaac@example.com",
+  "password": "Password123!",
+  "role": "MEMBER"
+}
+```
+
+Respuesta `201`:
+
+```json
+{
+  "id": "usr-001",
+  "name": "Isaac Vasquez",
+  "email": "isaac@example.com",
+  "role": "MEMBER",
+  "status": "PENDING"
+}
+```
+
+Los usuarios se crean en estado `PENDING`. Un administrador los activa con un `PUT`
+enviando `"status": "ACTIVE"`.
+
+**Actualizar usuario**
+
+```json
+{
+  "name": "Isaac Vasquez",
+  "email": "isaac@example.com",
+  "password": "",
+  "role": "MEMBER",
+  "status": "ACTIVE"
+}
+```
+
+Si `password` viene vacío se conserva la contraseña actual.
+
+### Reservas de hotel
 
 | Método | Ruta | Descripción | Permiso |
 |--------|------|-------------|---------|
@@ -47,6 +124,82 @@ Los endpoints son los mismos de siempre, sobre `/api/reservas-hotel`:
 | GET | `/api/reservas-hotel/{id}` | Consulta una reserva por su id | ADMIN o REVIEWER |
 | PUT | `/api/reservas-hotel/{id}` | Actualiza una reserva | ADMIN |
 | DELETE | `/api/reservas-hotel/{id}` | Elimina una reserva | ADMIN |
+
+**Crear reserva**
+
+```json
+{
+  "id": "res-demo-001",
+  "fecha": "2026-11-12",
+  "hotel": "Hotel Cartagena",
+  "huesped": "Juan Perez",
+  "fechaInicio": "2026-12-01",
+  "fechaFin": "2026-12-05",
+  "valor": 450000.0,
+  "habitacion": "301",
+  "numAcompanantes": 2,
+  "pais": "Colombia",
+  "departamento": "Bolivar",
+  "ciudad": "Cartagena",
+  "horaCheckin": "15:00",
+  "horaCheckout": "12:00",
+  "empleadoAtiende": "Maria Lopez",
+  "empleadoDespide": "Carlos Ruiz",
+  "descripcion": "Vista al mar"
+}
+```
+
+Respuesta `201`: la reserva creada con `"status": "PENDING"`.
+
+**Actualizar reserva**
+
+```json
+{
+  "fecha": "2026-11-12",
+  "hotel": "Hotel Cartagena",
+  "huesped": "Juan Perez",
+  "fechaInicio": "2026-12-01",
+  "fechaFin": "2026-12-05",
+  "valor": 500000.0,
+  "habitacion": "302",
+  "numAcompanantes": 3,
+  "pais": "Colombia",
+  "departamento": "Bolivar",
+  "ciudad": "Cartagena",
+  "horaCheckin": "15:00",
+  "horaCheckout": "12:00",
+  "empleadoAtiende": "Maria Lopez",
+  "empleadoDespide": "Carlos Ruiz",
+  "descripcion": "Cambio de habitacion",
+  "status": "CONFIRMED"
+}
+```
+
+El `PUT` reemplaza todos los campos de la reserva, incluido el estado. El `DELETE`
+responde `204` sin cuerpo.
+
+### Códigos de respuesta
+
+| Código | Cuándo ocurre |
+|--------|---------------|
+| 200 | Consulta o actualización exitosa |
+| 201 | Creación exitosa |
+| 204 | Eliminación exitosa |
+| 400 | Datos inválidos o estado no permitido |
+| 401 | Falta el token o las credenciales son incorrectas |
+| 403 | El rol del usuario no tiene permiso |
+| 404 | El recurso no existe |
+| 409 | El usuario ya existe |
+| 500 | Error inesperado del servidor |
+
+## Modelo de reservas de hotel
+
+El servicio también permite llevar el registro de las reservas de hotel. Cada reserva guarda la fecha en que se hizo, el hotel, el huésped, la fecha de inicio y de fin de la estadía, el valor pagado, la habitación, el número de acompañantes, el país, el departamento y la ciudad donde queda el hotel, la hora de check-in y de check-out, el empleado que atiende y el que despide al huésped, y una descripción opcional con observaciones adicionales.
+
+Las reservas pasan por cuatro estados: `PENDING` cuando se crean, y luego se pueden actualizar a `CONFIRMED`, `CANCELLED` o `COMPLETED` mediante el `PUT`. El estado se valida contra el enum, así que un valor desconocido devuelve `400`.
+
+Los endpoints y ejemplos de request están documentados en la sección
+[Reservas de hotel](#reservas-de-hotel) de arriba, y también en Swagger UI.
 
 Las reservas se guardan en la tabla `reservas_hotel` (ver `src/main/resources/schema.sql`), siguiendo el mismo flujo que los usuarios: el caso de uso valida los datos, el dominio aplica las reglas y el repositorio en MySQL se encarga de la persistencia.
 
