@@ -3,10 +3,12 @@ services:
     name: users-management-api
     runtime: docker
     plan: free
-    branch: main
+    branch: feature/reserva-hotel
     autoDeployTrigger: commit
     healthCheckPath: /health
     envVars:
+      - key: JAVA_TOOL_OPTIONS
+        value: -Xmx256m
       - key: DB_HOST
         sync: false
       - key: DB_PORT
