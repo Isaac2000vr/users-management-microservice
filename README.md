@@ -40,6 +40,27 @@ Los endpoints son los mismos de siempre, sobre `/api/reservas-hotel`:
 
 Las reservas se guardan en la tabla `reservas_hotel` (ver `src/main/resources/schema.sql`), siguiendo el mismo flujo que los usuarios: el caso de uso valida los datos, el dominio aplica las reglas y el repositorio en MySQL se encarga de la persistencia.
 
+## Pruebas con Postman
+
+La colección `postman/users-management.postman_collection.json` agrupa las peticiones de salud, autenticación, usuarios y reservas. Para usarla:
+
+1. Importar el archivo en Postman.
+2. Ajustar `baseUrl` si la API no está en `http://localhost:8080`.
+3. Ejecutar **Login admin**: el script guarda el `accessToken` en la variable `token`.
+4. Correr las demás peticiones o la colección completa con el Collection Runner.
+
+Cada petición incluye pruebas básicas del código de respuesta y del estado resultante.
+
+## Integración y despliegue continuo
+
+El flujo `.github/workflows/ci.yml` se ejecuta en cada push a `main` o a una rama `feature/**` y en los pull requests hacia `main`:
+
+1. Compila y ejecuta la suite con Maven sobre JDK 17.
+2. Construye la imagen Docker con el mismo `Dockerfile` que se usa en local.
+3. En pushes a `main`, dispara el deploy hook de Render si existe el secreto `RENDER_DEPLOY_HOOK_URL`.
+
+Para habilitar el último paso hay que crear ese secreto en GitHub con la URL del deploy hook del servicio en Render.
+
 ## Despliegue en Render
 
 El archivo `render.yaml` define el servicio web, el build con Docker y el despliegue
