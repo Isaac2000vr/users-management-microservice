@@ -3,7 +3,7 @@ services:
     name: users-management-api
     runtime: docker
     plan: free
-    branch: feature/reserva-hotel
+    branch: main
     autoDeployTrigger: commit
     healthCheckPath: /health
     envVars:
