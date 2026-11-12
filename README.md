@@ -4,6 +4,16 @@ Aplicación de gestión de usuarios y reservas de hotel construida con Java 17 y
 
 Spring es el único *composition root*: `Main` inicia el contexto y las dependencias se resuelven mediante configuración y component scanning de Spring.
 
+## Demo en línea
+
+La API está desplegada en Render y usa TiDB Cloud Serverless como base de datos:
+
+- Servicio: https://users-management-api-70w5.onrender.com
+- Estado: https://users-management-api-70w5.onrender.com/health
+- Swagger UI: https://users-management-api-70w5.onrender.com/swagger-ui.html
+
+El plan gratuito de Render suspende el servicio tras unos minutos sin tráfico, así que la primera petición puede tardar cerca de un minuto.
+
 ## Verificación
 
 `GET /health` es publico y responde HTTP 200 con los metadatos generados desde
